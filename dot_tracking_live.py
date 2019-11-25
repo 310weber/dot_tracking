@@ -42,7 +42,7 @@ else:
 
         # threshold and AND to separate only yellow pixels
         thresh_h = cv2.inRange(frame_h, 18, 32)
-        thresh_s = cv2.inRange(frame_s, 75, 255)
+        thresh_s = cv2.inRange(frame_s, 125, 255)
         thresh_v = cv2.inRange(frame_v, 150, 255)
         tracker = cv2.bitwise_and(thresh_h, thresh_s)
         tracker = cv2.bitwise_and(tracker, thresh_v)
