@@ -34,6 +34,9 @@ else:
     while(cap.isOpened()):
         # capture frame and get frame time in milliseconds
         ret, frame = cap.read()
+        if not ret:
+            print("Can't receive frame (stream end?). Exiting ...")
+            break
         frametime = cap.get(cv2.CAP_PROP_POS_MSEC)
 
         # convert to HSV colour space and blur to reduce noise
@@ -60,8 +63,8 @@ else:
             # draw circle around spot in output frame
             ((cx, cy), r) = cv2.minEnclosingCircle(cont)
             position = (int(cx), int(cy))
-            cv2.circle(frame_out, position, 1, (0, 0, 255), 1)
-            cv2.circle(frame_out, position, int(r), (0, 0, 128), 1)
+            cv2.circle(frame_out, position, 1, (0, 0, 255), 3)
+            cv2.circle(frame_out, position, int(r), (0, 0, 128), 3)
         else:
             position = (0, 0)   # if no contour is found
 
