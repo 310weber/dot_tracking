@@ -2,6 +2,8 @@ import sys
 import cv2
 from datetime import datetime
 import csv
+colour = 'green'
+last_position = (0, 0)
 
 # if no commandline arguments are sent, load the default video
 if len(sys.argv) == 1:
@@ -14,6 +16,32 @@ csv_filename = user + ' ' + \
                datetime.strftime(datetime.now(), "%y%m%d%H%M%S") + '.csv'
 out_filename = user + ' ' + \
                datetime.strftime(datetime.now(), "%y%m%d%H%M%S") + '.mp4'
+
+f = open(csv_filename, "w+")
+f.write("Time, X, Y, Delta X, Delta Y\n")
+f.close()
+
+if colour == 'green':
+    h_low = 40
+    h_high = 90
+    s_low = 50
+    s_high = 255
+    v_low = 50
+    v_high = 255
+elif colour == 'yellow':
+    h_low = 18
+    h_high = 32
+    s_low = 125
+    s_high = 255
+    v_low = 150
+    v_high = 255
+else:
+    h_low = 40
+    h_high = 90
+    s_low = 50
+    s_high = 255
+    v_low = 50
+    v_high = 255
 
 # setup video capture and output files
 cap = cv2.VideoCapture(sys.argv[1])
@@ -47,9 +75,9 @@ else:
         frame_h, frame_s, frame_v = cv2.split(frame_hsv)
 
         # threshold and AND to separate yellow pixels
-        thresh_h = cv2.inRange(frame_h, 18, 32)
-        thresh_s = cv2.inRange(frame_s, 75, 255)
-        thresh_v = cv2.inRange(frame_v, 150, 255)
+        thresh_h = cv2.inRange(frame_h, h_low, h_high)
+        thresh_s = cv2.inRange(frame_s, s_low, s_high)
+        thresh_v = cv2.inRange(frame_v, v_low, v_high)
         tracker = cv2.bitwise_and(thresh_h, thresh_s)
         tracker = cv2.bitwise_and(tracker, thresh_v)
 
@@ -68,20 +96,21 @@ else:
         else:
             position = (0, 0)   # if no contour is found
 
+        if (last_position[0] ==0 and last_position[1] == 0):
+            delta = (0,0)
+        else:
+            delta = (position[0] - last_position[0], position[1] - last_position[1])
+        last_position = position
         # write data to CSV file
         with open(csv_filename, 'a', newline='') as writefile:
             writer = csv.writer(writefile)
-            writer.writerow(position + (frametime,))
+            writer.writerow((frametime,) + position + delta)
         writefile.close()
 
         out.write(tracker)
 
         if ret:
             cv2.imshow('output', frame_out)
-#            cv2.imshow('thresh h', thresh_h)
-#            cv2.imshow('thresh s', thresh_s)
-#            cv2.imshow('thresh v', thresh_v)
-#            cv2.imshow('tracker', tracker)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
