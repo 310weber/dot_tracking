@@ -13,6 +13,8 @@ y_scaling = 16.254
 font = cv2.FONT_HERSHEY_SIMPLEX
 font_scaling = 0.5
 font_thickness = 1
+min_contour_size = 4000
+no_contour = False
 
 # if no commandline arguments are sent, load the default video
 if len(sys.argv) == 1:
@@ -101,22 +103,29 @@ else:
         # find contours around objects (white space) in tracker image
         contours, hierarchy = cv2.findContours(tracker, cv2.RETR_TREE,
                                                cv2.CHAIN_APPROX_SIMPLE)
+
         tracker = cv2.cvtColor(tracker, cv2.COLOR_GRAY2RGB) # turn tracker into RGB for overlay graphics
         if len(contours) >= 1:
             contours = sorted(contours, key=cv2.contourArea, reverse=True)
             cont = contours[0]  # select only the largest contour
 
             # draw circle around spot in output frame
-            ((cx, cy), r) = cv2.minEnclosingCircle(cont)
-            position = (int(cx), int(cy))
-            cv2.circle(frame_out, position, 1, (0, 0, 255), 3)
-            cv2.circle(frame_out, position, int(r), (0, 0, 128), 3)
-            cv2.circle(tracker, position, 1, (0, 0, 255), 3) # add dot to center of tracked object in output video file
-            cv2.circle(tracker, position, int(r), (0, 0, 255), 2)
+            if cv2.contourArea(cont) > min_contour_size:
+                ((cx, cy), r) = cv2.minEnclosingCircle(cont)
+                position = (int(cx), int(cy))
+                cv2.circle(frame_out, position, 1, (0, 0, 255), 3)
+                cv2.circle(frame_out, position, int(r), (0, 0, 128), 3)
+                cv2.circle(tracker, position, 1, (0, 0, 255), 3) # add dot to center of tracked object in output video file
+                cv2.circle(tracker, position, int(r), (0, 0, 255), 2)
+                #no_contour = False
+            else:
+                position = (0, 0)  # if no contour is found
+                no_contour = True
         else:
             position = (0, 0)   # if no contour is found
+            no_contour = True
 
-        if last_position[0] ==0 and last_position[1] == 0:
+        if (last_position[0] ==0 and last_position[1] == 0) or (position[0] == 0 and position[1]==0): # check to see if tracked object was/is outside FOV
             delta_px = (0,0)
         else:
             delta_px = (position[0] - last_position[0], position[1] - last_position[1])
@@ -128,13 +137,19 @@ else:
         else:
             speed = 0
 
-        speed = int(speed)
-        (text_width, text_height) = cv2.getTextSize(str(speed), font, font_scaling, thickness=font_thickness)[0]
-        cv2.putText(tracker, str(speed), (60 - text_width, 15), font, fontScale=font_scaling, color=(0, 0, 255), thickness=font_thickness)
-        cv2.putText(tracker, 'mm/s', (70, 15), font, fontScale=font_scaling, color=(0, 0, 255), thickness=font_thickness)
+        if no_contour == False:
+            speed = int(speed)
+            (text_width, text_height) = cv2.getTextSize(str(speed), font, font_scaling, thickness=font_thickness)[0]
+            cv2.putText(tracker, str(speed), (60 - text_width, 15), font, fontScale=font_scaling, color=(0, 0, 255), thickness=font_thickness)
+            cv2.putText(tracker, 'mm/s', (70, 15), font, fontScale=font_scaling, color=(0, 0, 255), thickness=font_thickness)
+        else:
+            cv2.putText(tracker, 'No object', (70, 15), font, fontScale=font_scaling, color=(0, 0, 255), thickness=font_thickness)
+
+        # add frame timestamp to tracker
         (text_width, text_height) = cv2.getTextSize(str(int(frametime)), font, font_scaling, thickness=font_thickness)[0]
         cv2.putText(tracker, str(int(frametime)), (60 - text_width, 30), font, fontScale=font_scaling, color=(0, 0, 255), thickness=font_thickness)
         cv2.putText(tracker, 'ms', (70, 30), font, fontScale=font_scaling, color=(0, 0, 255), thickness=font_thickness)
+
 
         last_position = position
         last_time = frametime
@@ -145,10 +160,14 @@ else:
         # write data to CSV file
         with open(csv_filename, 'a', newline='') as writefile:
             writer = csv.writer(writefile)
-            writer.writerow((frametime,) + position + delta_px + delta_mm + (delta_pos,) + (speed,))
+            if no_contour == False:
+                writer.writerow((frametime,) + position + delta_px + delta_mm + (delta_pos,) + (speed,))
+            else:
+                writer.writerow((frametime,))
         writefile.close()
 
         out.write(tracker)
+        no_contour = False
 
         if ret:
             cv2.imshow('output', frame_out)
