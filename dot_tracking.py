@@ -30,12 +30,13 @@ f = open(csv_filename, "w+")
 f.write("Time, X, Y, Delta X (px), Delta Y(px), Delta X (mmm), Delta Y (mm), Delta (mm), Speed (mm/s)\n")
 f.close()
 
+# For HSV, Hue range is [0,179], Saturation range is [0,255] and Value range is [0,255].
 if colour == 'green':
-    h_low = 40
-    h_high = 90
-    s_low = 50
+    h_low = 45
+    h_high = 85
+    s_low = 80
     s_high = 255
-    v_low = 50
+    v_low = 80
     v_high = 255
 elif colour == 'yellow':
     h_low = 18
@@ -100,6 +101,7 @@ else:
         # find contours around objects (white space) in tracker image
         contours, hierarchy = cv2.findContours(tracker, cv2.RETR_TREE,
                                                cv2.CHAIN_APPROX_SIMPLE)
+        tracker = cv2.cvtColor(tracker, cv2.COLOR_GRAY2RGB) # turn tracker into RGB for overlay graphics
         if len(contours) >= 1:
             contours = sorted(contours, key=cv2.contourArea, reverse=True)
             cont = contours[0]  # select only the largest contour
@@ -110,6 +112,7 @@ else:
             cv2.circle(frame_out, position, 1, (0, 0, 255), 3)
             cv2.circle(frame_out, position, int(r), (0, 0, 128), 3)
             cv2.circle(tracker, position, 1, (0, 0, 255), 3) # add dot to center of tracked object in output video file
+            cv2.circle(tracker, position, int(r), (0, 0, 255), 2)
         else:
             position = (0, 0)   # if no contour is found
 
@@ -127,11 +130,11 @@ else:
 
         speed = int(speed)
         (text_width, text_height) = cv2.getTextSize(str(speed), font, font_scaling, thickness=font_thickness)[0]
-        cv2.putText(tracker, str(speed), (60 - text_width, 15), font, fontScale=font_scaling, color=(255, 0, 255), thickness=font_thickness)
-        cv2.putText(tracker, 'mm/s', (70, 15), font, fontScale=font_scaling, color=(255, 0, 255), thickness=font_thickness)
+        cv2.putText(tracker, str(speed), (60 - text_width, 15), font, fontScale=font_scaling, color=(0, 0, 255), thickness=font_thickness)
+        cv2.putText(tracker, 'mm/s', (70, 15), font, fontScale=font_scaling, color=(0, 0, 255), thickness=font_thickness)
         (text_width, text_height) = cv2.getTextSize(str(int(frametime)), font, font_scaling, thickness=font_thickness)[0]
-        cv2.putText(tracker, str(int(frametime)), (60 - text_width, 30), font, fontScale=font_scaling, color=(255, 0, 255), thickness=font_thickness)
-        cv2.putText(tracker, 'ms', (70, 30), font, fontScale=font_scaling, color=(255, 0, 255), thickness=font_thickness)
+        cv2.putText(tracker, str(int(frametime)), (60 - text_width, 30), font, fontScale=font_scaling, color=(0, 0, 255), thickness=font_thickness)
+        cv2.putText(tracker, 'ms', (70, 30), font, fontScale=font_scaling, color=(0, 0, 255), thickness=font_thickness)
 
         last_position = position
         last_time = frametime
