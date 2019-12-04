@@ -6,25 +6,27 @@ import msvcrt
 class DotTracking():
     def __init__(self, fileName):
         self.fileName = fileName
-        user = input("Enter user name: ")
-        self.csv_filename = user + ' ' + \
-                       datetime.strftime(datetime.now(), "%y%m%d%H%M%S") + '.csv'
-        self.out_filename = user + ' ' + \
-                       datetime.strftime(datetime.now(), "%y%m%d%H%M%S") + '.mp4'
-        f = open(self.csv_filename, "w+")
-        f.write("Time, X, Y, Delta X (px), Delta Y(px), Delta X (mmm), Delta Y (mm), Delta (mm), Speed (mm/s)\n")
-        f.close()
+        # user = input("Enter user name: ")
+        # self.csv_filename = user + ' ' + \
+        #                datetime.strftime(datetime.now(), "%y%m%d%H%M%S") + '.csv'
+        # self.out_filename = user + ' ' + \
+        #                datetime.strftime(datetime.now(), "%y%m%d%H%M%S") + '.mp4'
+        # f = open(self.csv_filename, "w+")
+        # f.write("Time, X, Y, Delta X (px), Delta Y(px), Delta X (mmm), Delta Y (mm), Delta (mm), Speed (mm/s)\n")
+        # f.close()
         self.colour = 'green'
         self.show_tracker = True
         self.last_position = (0, 0)
         self.last_time = 0
-        self.x_scaling = 16.254
-        self.y_scaling = 16.254
+        self.x_scaling = 17.786
+        self.y_scaling = 17.786
         self.font = cv2.FONT_HERSHEY_SIMPLEX
         self.font_scaling = 0.5
         self.font_thickness = 1
         self.min_contour_size = 4000
         self.no_contour = False
+        self.test = False
+        self.out_filename = ""
         if self.colour == 'green':
             self.h_low = 45
             self.h_high = 85
@@ -67,6 +69,16 @@ class DotTracking():
     def Start(self):
         # setup video capture and output files
         cap = cv2.VideoCapture(self.fileName)
+
+        if self.test == False:
+            user = input("Enter user name: ")
+            self.csv_filename = user + ' ' + \
+                           datetime.strftime(datetime.now(), "%y%m%d%H%M%S") + '.csv'
+            self.out_filename = user + ' ' + \
+                           datetime.strftime(datetime.now(), "%y%m%d%H%M%S") + '.mp4'
+            f = open(self.csv_filename, "w+")
+            f.write("Time, X, Y, Delta X (px), Delta Y(px), Delta X (mmm), Delta Y (mm), Delta (mm), Speed (mm/s)\n")
+            f.close()
 
         if not cap.isOpened():
             print("Error opening file.")
@@ -155,6 +167,11 @@ class DotTracking():
                 else:
                     cv2.putText(tracker, 'No object', (70, 15), self.font, fontScale=self.font_scaling, color=(0, 0, 255), thickness=self.font_thickness)
 
+                cv2.putText(tracker, 'H:' + str(self.h_low) + ':' + str(self.h_high), (550, 15), self.font, fontScale=self.font_scaling, color=(0, 0, 255), thickness=self.font_thickness)
+                cv2.putText(tracker, 'S:' + str(self.s_low) + ':' + str(self.s_high), (550, 30), self.font, fontScale=self.font_scaling, color=(0, 0, 255), thickness=self.font_thickness)
+                cv2.putText(tracker, 'V:' + str(self.v_low) + ':' + str(self.v_high), (550, 45), self.font, fontScale=self.font_scaling, color=(0, 0, 255), thickness=self.font_thickness)
+                cv2.putText(tracker, 'Size:' + str(self.min_contour_size), (550, 60), self.font, fontScale=self.font_scaling, color=(0, 0, 255), thickness=self.font_thickness)
+
                 # add frame timestamp to tracker
                 (text_width, text_height) = cv2.getTextSize(str(int(frametime)), self.font, self.font_scaling, thickness=self.font_thickness)[0]
                 cv2.putText(tracker, str(int(frametime)), (60 - text_width, 30), self.font, fontScale=self.font_scaling, color=(0, 0, 255), thickness=self.font_thickness)
@@ -168,15 +185,15 @@ class DotTracking():
                     cv2.imshow("Tracking image", tracker)
 
                 # write data to CSV file
-                with open(self.csv_filename, 'a', newline='') as writefile:
-                    writer = csv.writer(writefile)
-                    if self.no_contour == False:
-                        writer.writerow((frametime,) + position + delta_px + delta_mm + (delta_pos,) + (speed,))
-                    else:
-                        writer.writerow((frametime,))
-                writefile.close()
-
-                out.write(tracker)
+                if self.test == False:
+                    with open(self.csv_filename, 'a', newline='') as writefile:
+                        writer = csv.writer(writefile)
+                        if self.no_contour == False:
+                            writer.writerow((frametime,) + position + delta_px + delta_mm + (delta_pos,) + (speed,))
+                        else:
+                            writer.writerow((frametime,))
+                    writefile.close()
+                    out.write(tracker)
                 no_contour = False
 
                 if ret:

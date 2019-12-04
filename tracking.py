@@ -1,6 +1,6 @@
 import sys
 import threading
-from tkinter import Frame, Tk, Scale, HORIZONTAL, Label
+from tkinter import Frame, Tk, Scale, HORIZONTAL, Label, Button
 from dot_tracking_class import DotTracking
 
 
@@ -42,8 +42,19 @@ class MainGUI():
         self.Val_max = Scale(frame, from_=0, to=255, orient=HORIZONTAL, command=self.sliderUpdateMax)
         self.Val_max.set(255)
         self.Val_max.grid(row=5, column=2)
-        start_thread = threading.Thread(target=self.DotTracking.Start)
-        start_thread.start()
+        #SIZE
+        self.label7 = Label(frame, text="Size:")
+        self.label7.grid(row=6, column=1)
+        self.Size_setting = Scale(frame, from_= 1000, to = 7000, orient=HORIZONTAL, command=self.updateSize)
+        self.Size_setting.set(5000)
+        self.Size_setting.grid(row = 6, column = 2)
+        #Buttons
+        self.TestButton = Button(frame, text="Test", command=self.runTest)
+        self.TestButton.grid(row=7, column=1)
+        self.StartButton = Button(frame, text="Run", command=self.runAnalyze)
+        self.StartButton.grid(row=7, column=2)
+        # start_thread = threading.Thread(target=self.DotTracking.Start)
+        # start_thread.start()
         #self.DotTracking.Start()
 
     def sliderUpdateMax(self, *args):
@@ -64,13 +75,27 @@ class MainGUI():
             self.Val_min.set(self.Val_max.get())
         self.updateHSV()
 
-    def updateHSV(self):
+    def runTest(self, *args):
+        self.DotTracking.test = True
+        start_thread = threading.Thread(target=self.DotTracking.Start)
+        start_thread.start()
+
+    def runAnalyze(self, *args):
+        self.DotTracking.test = False
+        start_thread = threading.Thread(target=self.DotTracking.Start)
+        start_thread.start()
+
+    def updateSize(self, *args):
+        self.DotTracking.min_contour_size = self.Size_setting.get()
+
+    def updateHSV(self, *args):
         self.DotTracking.h_low = self.Hue_min.get()
         self.DotTracking.h_high = self.Hue_max.get()
         self.DotTracking.s_low = self.Sat_min.get()
         self.DotTracking.s_high = self.Sat_max.get()
         self.DotTracking.v_low = self.Val_min.get()
         self.DotTracking.v_high = self.Val_max.get()
+
 
 if __name__ == '__main__':
     parent = Tk()
