@@ -67,6 +67,7 @@ class DotTracking():
 
 
     def Start(self):
+        self.last_position = (0, 0)
         # setup video capture and output files
         cap = cv2.VideoCapture(self.fileName)
 
@@ -142,10 +143,10 @@ class DotTracking():
                         #no_contour = False
                     else:
                         position = (0, 0)  # if no contour is found
-                        no_contour = True
+                        self.no_contour = True
                 else:
                     position = (0, 0)   # if no contour is found
-                    no_contour = True
+                    self.no_contour = True
 
                 if (self.last_position[0] ==0 and self.last_position[1] == 0) or (position[0] == 0 and position[1]==0): # check to see if tracked object was/is outside FOV
                     delta_px = (0,0)
@@ -167,10 +168,12 @@ class DotTracking():
                 else:
                     cv2.putText(tracker, 'No object', (70, 15), self.font, fontScale=self.font_scaling, color=(0, 0, 255), thickness=self.font_thickness)
 
+                # add HSV values to tracker
                 cv2.putText(tracker, 'H:' + str(self.h_low) + ':' + str(self.h_high), (550, 15), self.font, fontScale=self.font_scaling, color=(0, 0, 255), thickness=self.font_thickness)
                 cv2.putText(tracker, 'S:' + str(self.s_low) + ':' + str(self.s_high), (550, 30), self.font, fontScale=self.font_scaling, color=(0, 0, 255), thickness=self.font_thickness)
                 cv2.putText(tracker, 'V:' + str(self.v_low) + ':' + str(self.v_high), (550, 45), self.font, fontScale=self.font_scaling, color=(0, 0, 255), thickness=self.font_thickness)
                 cv2.putText(tracker, 'Size:' + str(self.min_contour_size), (550, 60), self.font, fontScale=self.font_scaling, color=(0, 0, 255), thickness=self.font_thickness)
+                cv2.putText(tracker, "(" + str(position[0]) + ", " + str(position[1]) + ")", (20, 450), self.font, fontScale=self.font_scaling, color=(0,0,255), thickness=self.font_thickness)
 
                 # add frame timestamp to tracker
                 (text_width, text_height) = cv2.getTextSize(str(int(frametime)), self.font, self.font_scaling, thickness=self.font_thickness)[0]
@@ -194,7 +197,7 @@ class DotTracking():
                             writer.writerow((frametime,))
                     writefile.close()
                     out.write(tracker)
-                no_contour = False
+                self.no_contour = False
 
                 if ret:
                     cv2.imshow('output', frame_out)
