@@ -27,6 +27,7 @@ class DotTracking():
         self.no_contour = False
         self.test = False
         self.out_filename = ""
+        self.user = ""
         if self.colour == 'green':
             self.h_low = 45
             self.h_high = 85
@@ -72,10 +73,10 @@ class DotTracking():
         cap = cv2.VideoCapture(self.fileName)
 
         if self.test == False:
-            user = input("Enter user name: ")
-            self.csv_filename = user + ' ' + \
+            #user = input("Enter user name: ")
+            self.csv_filename = self.user + ' ' + \
                            datetime.strftime(datetime.now(), "%y%m%d%H%M%S") + '.csv'
-            self.out_filename = user + ' ' + \
+            self.out_filename = self.user + ' ' + \
                            datetime.strftime(datetime.now(), "%y%m%d%H%M%S") + '.mp4'
             f = open(self.csv_filename, "w+")
             f.write("Time, X, Y, Delta X (px), Delta Y(px), Delta X (mmm), Delta Y (mm), Delta (mm), Speed (mm/s)\n")

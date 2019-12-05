@@ -1,6 +1,6 @@
 import sys
 import threading
-from tkinter import Frame, Tk, Scale, HORIZONTAL, Label, Button
+from tkinter import Frame, Tk, Scale, HORIZONTAL, Label, Button, simpledialog
 from dot_tracking_class import DotTracking
 
 
@@ -82,6 +82,7 @@ class MainGUI():
 
     def runAnalyze(self, *args):
         self.DotTracking.test = False
+        self.DotTracking.user = simpledialog.askstring("Input", "Enter user name:", parent=parent)
         start_thread = threading.Thread(target=self.DotTracking.Start)
         start_thread.start()
 
