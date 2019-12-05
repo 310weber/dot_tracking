@@ -28,6 +28,7 @@ class DotTracking():
         self.test = False
         self.out_filename = ""
         self.user = ""
+        self.live = False
         if self.colour == 'green':
             self.h_low = 45
             self.h_high = 85
@@ -70,7 +71,10 @@ class DotTracking():
     def Start(self):
         self.last_position = (0, 0)
         # setup video capture and output files
-        cap = cv2.VideoCapture(self.fileName)
+        if self.live == False:
+            cap = cv2.VideoCapture(self.fileName)
+        else:
+            cap = cv2.VideoCapture(0)
 
         if self.test == False:
             #user = input("Enter user name: ")

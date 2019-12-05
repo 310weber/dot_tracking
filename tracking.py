@@ -53,6 +53,8 @@ class MainGUI():
         self.TestButton.grid(row=7, column=1)
         self.StartButton = Button(frame, text="Run", command=self.runAnalyze)
         self.StartButton.grid(row=7, column=2)
+        self.LiveButton = Button(frame, text="Live", command=self.LiveStream)
+        self.LiveButton.grid(row=7, column=3)
         # start_thread = threading.Thread(target=self.DotTracking.Start)
         # start_thread.start()
         #self.DotTracking.Start()
@@ -97,6 +99,11 @@ class MainGUI():
         self.DotTracking.v_low = self.Val_min.get()
         self.DotTracking.v_high = self.Val_max.get()
 
+    def LiveStream(self, *args):
+        self.DotTracking.live = True
+        start_thread = threading.Thread(target=self.DotTracking.Start)
+        start_thread.start()
+        self.DotTracking.live = False
 
 if __name__ == '__main__':
     parent = Tk()
